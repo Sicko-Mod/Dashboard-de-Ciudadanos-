@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\City;
+use App\Models\Citizen; // Ensure Citizen model is imported
 
 class CityController extends Controller
 {
@@ -13,7 +14,8 @@ class CityController extends Controller
     public function index()
     {
         try{
-            $cities = City::orderBy('name', 'asc')->paginate(6);
+            // Eager load citizens count for display and check before deleting
+            $cities = City::withCount('citizens')->orderBy('name', 'asc')->paginate(6);
             return view('cities.index', compact('cities'));
         }catch(\Exception $e){
             return redirect()->back()->with('error', 'Error al obtener las ciudades: ' . $e->getMessage());}
@@ -37,7 +39,7 @@ class CityController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:cities,name', // Add unique validation
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -81,7 +83,7 @@ class CityController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:cities,name,' . $id, // Add unique validation ignoring current ID
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -101,12 +103,16 @@ class CityController extends Controller
     {
         try {
             $city = City::findOrFail($id);
+
+            // Check if the city has any associated citizens
+            if ($city->citizens()->count() > 0) {
+                return redirect()->back()->with('error', 'No se puede eliminar la ciudad porque tiene ciudadanos asociados.');
+            }
+
             $city->delete();
             return redirect()->route('cities.index')->with('success', 'Ciudad eliminada con éxito.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al eliminar la ciudad: ' . $e->getMessage());
         }
     }
-
-    
 }

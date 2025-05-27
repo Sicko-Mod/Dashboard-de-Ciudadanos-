@@ -3,21 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\City;
+use App\Models\Citizen;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $cities = City::all();
-        return view('dashboard', compact('cities'));
+        $totalCities = City::count();
+        $totalCitizens = Citizen::count();
+        $citiesWithCitizenCount = City::withCount('citizens')->orderBy('name', 'asc')->get();
+
+        return view('dashboard', compact('totalCities', 'totalCitizens', 'citiesWithCitizenCount'));
     }
 
-    public function showCity($id)
+    public function showCity(Request $request, $id) // Inject Request
     {
         $city = City::findOrFail($id);
-        $citizens = $city->citizens()->paginate(5);  // paginación 5 por página
-        $cities = City::all();  // Para menú lateral
+        $query = $city->citizens();
+
+        // Implement search functionality
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where('name', 'like', '%' . $search . '%'); // Search by citizen name
+        }
+
+        $citizens = $query->orderBy('name', 'asc')->paginate(5)->withQueryString(); // Order by name and keep search query in pagination links
+        $cities = City::all();
 
         return view('city', compact('city', 'citizens', 'cities'));
     }
