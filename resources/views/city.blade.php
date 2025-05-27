@@ -38,6 +38,10 @@
         <div class="flex-grow-1">
             <h2 class="mb-4">{{ __('Ciudadanos en ') }}{{ $city->name }}</h2>
 
+            <div class="mb-4 text-end">
+                <a href="{{ route('citizens.create', $city->id) }}" class="btn btn-success">{{ __('Add New Citizen') }}</a>
+            </div>
+
             <form action="{{ route('city.show', $city->id) }}" method="GET" class="mb-4">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control" placeholder="{{ __('Buscar ciudadano...') }}" value="{{ request('search') }}">
@@ -50,7 +54,14 @@
 
             <ul class="list-group">
                 @forelse($citizens as $citizen)
-                    <li class="list-group-item">{{ $citizen->name }}</li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ $citizen->name }}
+                        <form action="{{ route('citizens.destroy', $citizen->id) }}" method="POST" onsubmit="return confirm('{{ __('Are you sure you want to delete this citizen?') }}');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">{{ __('Delete') }}</button>
+                        </form>
+                    </li>
                 @empty
                     <li class="list-group-item">{{ __('No hay ciudadanos en esta ciudad.') }}</li>
                 @endforelse
