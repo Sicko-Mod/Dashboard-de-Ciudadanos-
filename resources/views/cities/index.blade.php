@@ -33,6 +33,10 @@
                         <p class="text-sm text-gray-500">Ciudadanos: {{ $city->citizens_count }}</p>
                     </div>
                     <div class="flex justify-end space-x-4 mt-4">
+                        <a href="{{ route('city.show', $city->id) }}"
+                           class="text-green-600 hover:text-green-900 font-medium">
+                            {{ __('View Citizens') }}
+                        </a>
                         <a href="{{ route('cities.edit', $city->id) }}"
                             class="text-indigo-600 hover:text-indigo-900 font-medium">
                             {{ __('Edit') }}
